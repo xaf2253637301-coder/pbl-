@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地登录注册功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .user-list {
+            margin-top: 20px;
+        }
+
+        .user-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-item strong {
+            color: #333;
+        }
+
+        .user-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .user-type.elderly { background: #28a745; }
+        .user-type.family { background: #007bff; }
+        .user-type.manager { background: #ffc107; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>银龄智护 - 本地登录注册功能测试</h1>
+
+    <!-- 统计信息 -->
+    <div class="container">
+        <h2>用户统计</h2>
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">总用户数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="elderlyUsers">0</div>
+                <div class="stat-label">老年人用户</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="familyUsers">0</div>
+                <div class="stat-label">家属用户</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="managerUsers">0</div>
+                <div class="stat-label">管理员用户</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- 注册表单 -->
+        <div class="container">
+            <h2>用户注册</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="regRealName">真实姓名 *</label>
+                    <input type="text" id="regRealName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">邮箱 *</label>
+                    <input type="email" id="regEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPhone">手机号 *</label>
+                    <input type="tel" id="regPhone" required placeholder="请输入11位手机号">
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">密码 *</label>
+                    <input type="password" id="regPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regConfirmPassword">确认密码 *</label>
+                    <input type="password" id="regConfirmPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regAddress">详细地址</label>
+                    <input type="text" id="regAddress">
+                </div>
+
+                <div class="form-group">
+                    <label for="regUserType">用户类型 *</label>
+                    <select id="regUserType" required>
+                        <option value="">请选择用户类型</option>
+                        <option value="elderly">老年人</option>
+                        <option value="family">家属</option>
+                        <option value="manager">管理员</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">注册</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('registerForm').reset()">清空</button>
+            </form>
+
+            <div id="registerMessage"></div>
+        </div>
+
+        <!-- 登录表单 -->
+        <div class="container">
+            <h2>用户登录</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">邮箱 *</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">密码 *</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+
+                <button type="submit" class="btn">登录</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('loginForm').reset()">清空</button>
+            </form>
+
+            <div id="loginMessage"></div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn btn-success" onclick="checkLoginStatus()">检查登录状态</button>
+                <button class="btn btn-danger" onclick="logout()">退出登录</button>
+            </div>
+
+            <div id="currentUser"></div>
+        </div>
+    </div>
+
+    <!-- 用户列表 -->
+    <div class="container">
+        <h2>用户列表</h2>
+        <button class="btn" onclick="loadUserList()">刷新列表</button>
+        <button class="btn btn-danger" onclick="clearAllUsers()">清空所有用户</button>
+
+        <div class="user-list" id="userList"></div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="./static/js/local-user-manager.js"></script>
+    <script>
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadUserList();
+            checkLoginStatus();
+        });
+
+        // 注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                realName: document.getElementById('regRealName').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                phone: document.getElementById('regPhone').value.trim(),
+                password: document.getElementById('regPassword').value,
+                confirmPassword: document.getElementById('regConfirmPassword').value,
+                address: document.getElementById('regAddress').value.trim(),
+                userType: document.getElementById('regUserType').value
+            };
+
+            // 客户端验证
+            if (formData.password !== formData.confirmPassword) {
+                showMessage('registerMessage', '两次输入的密码不一致', 'error');
+                return;
+            }
+
+            if (!formData.userType) {
+                showMessage('registerMessage', '请选择用户类型', 'error');
+                return;
+            }
+
+            // 调用注册
+            const result = userManager.register(formData);
+
+            if (result.success) {
+                showMessage('registerMessage', result.message, 'success');
+                document.getElementById('registerForm').reset();
+                loadStats();
+                loadUserList();
+            } else {
+                showMessage('registerMessage', result.message, 'error');
+            }
+        });
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const result = userManager.login(email, password);
+
+            if (result.success) {
+                showMessage('loginMessage', result.message, 'success');
+                document.getElementById('loginForm').reset();
+                checkLoginStatus();
+            } else {
+                showMessage('loginMessage', result.message, 'error');
+            }
+        });
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const currentUser = userManager.getCurrentUser();
+            const currentUserDiv = document.getElementById('currentUser');
+
+            if (currentUser) {
+                currentUserDiv.innerHTML = `
+                    <div class="message success">
+                        <strong>已登录用户信息：</strong><br>
+                        姓名：${currentUser.realName}<br>
+                        邮箱：${currentUser.email}<br>
+                        用户类型：${getUserTypeName(currentUser.userType)}<br>
+                        登录时间：${new Date(currentUser.loginTime).toLocaleString()}
+                    </div>
+                `;
+            } else {
+                currentUserDiv.innerHTML = '<div class="message info">当前未登录</div>';
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            const result = userManager.logout();
+            showMessage('loginMessage', result.message, 'info');
+            checkLoginStatus();
+        }
+
+        // 加载用户统计
+        function loadStats() {
+            const stats = userManager.getUserStats();
+            document.getElementById('totalUsers').textContent = stats.total;
+            document.getElementById('elderlyUsers').textContent = stats.byType.elderly;
+            document.getElementById('familyUsers').textContent = stats.byType.family;
+            document.getElementById('managerUsers').textContent = stats.byType.manager;
+        }
+
+        // 加载用户列表
+        function loadUserList() {
+            const users = userManager.getUsers();
+            const userListDiv = document.getElementById('userList');
+
+            if (users.length === 0) {
+                userListDiv.innerHTML = '<div class="message info">暂无用户数据</div>';
+                return;
+            }
+
+            const userItems = users.map(user => `
+                <div class="user-item">
+                    <strong>${user.realName}</strong>
+                    <span class="user-type ${user.userType}">${getUserTypeName(user.userType)}</span>
+                    <br>
+                    <small>
+                        邮箱：${user.email} |
+                        手机：${user.phone} |
+                        地址：${user.address || '未填写'} |
+                        注册时间：${new Date(user.createdAt).toLocaleString()}
+                    </small>
+                </div>
+            `).join('');
+
+            userListDiv.innerHTML = userItems;
+        }
+
+        // 清空所有用户
+        function clearAllUsers() {
+            if (confirm('确定要清空所有用户数据吗？此操作不可恢复！')) {
+                localStorage.removeItem('silverAgeUsers');
+                userManager.logout();
+                loadStats();
+                loadUserList();
+                checkLoginStatus();
+                showMessage('loginMessage', '所有用户数据已清空', 'info');
+            }
+        }
+
+        // 显示消息
+        function showMessage(elementId, message, type) {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
+
+            // 3秒后自动清除消息
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 获取用户类型名称
+        function getUserTypeName(type) {
+            switch(type) {
+                case 'elderly': return '老年人';
+                case 'family': return '家属';
+                case 'manager': return '管理员';
+                default: return '未知';
+            }
+        }
+    </script>
+</body>
+</html>
