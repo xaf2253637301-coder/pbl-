@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="user-scalable=yes">
+    <title>银龄智护 - 社区养老服务智能管理与可视化平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/index.css">
+    <style>
+        /* 用户信息下拉菜单样式 */
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-menu .user-info {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .user-dropdown a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .user-dropdown a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .user-menu:hover .user-dropdown {
+            display: block;
+        }
+
+        /* 登录状态下的内容显示控制 */
+        .login-required {
+            display: none;
+        }
+
+        .logged-in .login-required {
+            display: block;
+        }
+
+        .logged-in #login-btn,
+        .logged-in #show-register,
+        .logged-in #show-login {
+            display: none !important;
+        }
+
+        /* 用户信息卡片样式 */
+        .user-info-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+        }
+
+        /* 忘记密码样式 */
+        .forgot-password-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10000;
+            min-height: 100vh;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .forgot-password-container form {
+            margin: 2rem;
+            padding: 1.5rem 2rem;
+            border-radius: 0.5rem;
+            background: #fff;
+            width: 50rem;
+            position: relative;
+        }
+
+        .forgot-password-container form h3 {
+            font-size: 2rem;
+            color: #444;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .forgot-password-container form .box {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            color: #333;
+            margin: 0.6rem 0;
+            border: 0.1rem solid rgba(0, 0, 0, 0.3);
+            text-transform: none;
+        }
+
+        .forgot-password-container form .box:focus {
+            border-color: var(--orange);
+        }
+
+        .forgot-password-container form #forgot-form-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .forgot-password-container form #forgot-form-close:hover {
+            color: #333;
+        }
+
+        /* 步骤进度条 */
+        .forgot-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .step.active {
+            background: var(--orange);
+        }
+
+        .step.completed {
+            background: #4CAF50;
+        }
+
+        .step-connector {
+            height: 2px;
+            background: #ddd;
+            flex: 1;
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .step-connector-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* 表单步骤 */
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        /* 按钮组 */
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+
+        .form-buttons .btn {
+            flex: 1;
+        }
+
+        /* 验证码组 */
+        .verification-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .verification-group .box {
+            flex: 1;
+        }
+
+        .verification-group .btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        /* 错误状态 */
+        .form-group.error .box {
+            border-color: #ff4757;
+        }
+
+        .form-group.success .box {
+            border-color: #2ed573;
+        }
+
+        /* 重置成功提示 */
+        .reset-success {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10001;
+            display: none;
+        }
+
+        .reset-success.active {
+            display: block;
+        }
+
+        .reset-success i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .reset-success h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .reset-success .countdown {
+            font-size: 1.5rem;
+            color: var(--orange);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="accessibility-toolbar">
+        <button id="fontSizeIncrease" class="access-btn"><i class="fas fa-text-height"></i> 增大字体</button>
+        <button id="fontSizeDecrease" class="access-btn"><i class="fas fa-text-height fa-flip-vertical"></i>
+            减小字体</button>
+        <button id="highContrast" class="access-btn"><i class="fas fa-adjust"></i> 高对比度</button>
+        <button id="readAloud" class="access-btn"><i class="fas fa-volume-up"></i> 语音朗读</button>
+    </div>
+    <!-- header section starts  -->
+    <header>
+        <div id="menu-bar" class="fas fa-bars"></div>
+
+        <a href="index.html" class="logo"><span>银</span>龄智护</a>
+
+        <nav class="navbar">
+            <a href="#home">首页</a>
+            <a href="#feedback">社区反馈</a>
+            <a href="services.html">服务查询</a>
+            <a href="#reference">在线办理</a>
+            <a href="#review">养老地图</a>
+            <a href="contact.html">联系我们</a>
+        </nav>
+
+        <div class="icons">
+            <i class="fas fa-search" id="search-btn"></i>
+            <i class="fas fa-user" id="login-btn"></i>
+            <div class="user-menu login-required">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userNameDisplay">用户</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="home.html"><i class="fas fa-user"></i> 个人中心</a>
+                    <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+                </div>
+            </div>
+        </div>
+
+        <form action="" class="search-bar-container">
+            <input type="search" id="search-bar" placeholder="请输入您想搜索的内容...">
+            <label for="search-bar" class="fas fa-search"></label>
+        </form>
+    </header>
+    <!-- header section ends -->
+
+    <!-- login form container  -->
+    <div class="login-form-container">
+        <i class="fas fa-times" id="form-close"></i>
+        <form id="loginForm">
+            <h3>用户登录</h3>
+            <div id="loginError" style="display: none; color: red; margin-top: 10px;"></div>
+            <input type="email" class="box" id="loginEmail" placeholder="请输入邮箱" autocomplete="email" required>
+            <input type="password" class="box" id="loginPassword" placeholder="请输入密码" autocomplete="current-password"
+                required>
+            <input type="submit" value="登录" class="btn">
+            <input type="checkbox" id="remember">
+            <label for="remember">记住密码</label>
+            <p>忘记密码？<a href="#" id="show-forgot-password">点击找回</a></p>
+            <p>还没有账号？<a href="#" id="show-register">立即注册</a></p>
+        </form>
+    </div>
+
+    <!-- 忘记密码表单 -->
+    <div class="forgot-password-container">
+        <form id="forgotPasswordForm">
+            <i class="fas fa-times" id="forgot-form-close"></i>
+            <h3>找回密码</h3>
+
+            <!-- 进度条 -->
+            <div class="forgot-progress">
+                <div class="step active" id="step1Indicator">1</div>
+                <div class="step-connector">
+                    <div class="step-connector-fill" id="stepConnector"></div>
+                </div>
+                <div class="step" id="step2Indicator">2</div>
+                <div class="step-connector">
+                    <div class="step-connector-fill"></div>
+                </div>
+                <div class="step" id="step3Indicator">3</div>
+            </div>
+
+            <!-- 步骤1：输入邮箱 -->
+            <div class="form-step active" id="step1">
+                <div class="form-group">
+                    <input type="email" class="box" id="forgotEmail" placeholder="请输入注册邮箱" autocomplete="email"
+                        required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn prev-step" data-prev="1" style="display: none;">上一步</button>
+                    <button type="button" class="btn next-step" data-next="2">下一步</button>
+                </div>
+            </div>
+
+            <!-- 步骤2：验证码验证 -->
+            <div class="form-step" id="step2">
+                <div class="form-group">
+                    <div class="verification-group">
+                        <input type="text" class="box" id="verificationCode" placeholder="请输入验证码" required>
+                        <button type="button" class="btn" id="sendCodeBtn">发送验证码</button>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn prev-step" data-prev="2">上一步</button>
+                    <button type="button" class="btn next-step" data-next="3">下一步</button>
+                </div>
+            </div>
+
+            <!-- 步骤3：设置新密码 -->
+            <div class="form-step" id="step3">
+                <div class="form-group">
+                    <input type="password" class="box" id="newPassword" placeholder="请输入新密码" autocomplete="new-password"
+                        required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="box" id="confirmNewPassword" placeholder="请确认新密码"
+                        autocomplete="new-password" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn prev-step" data-prev="3">上一步</button>
+                    <button type="submit" class="btn">重置密码</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 重置成功提示 -->
+    <div class="reset-success" id="resetSuccess">
+        <i class="fas fa-check-circle"></i>
+        <h3>密码重置成功！</h3>
+        <p>正在为您跳转到登录页面...</p>
+        <div class="countdown" id="resetCountdown">3</div>
+    </div>
+
+    <!-- register form container  -->
+    <div class="register-form-container">
+        <i class="fas fa-times" id="register-form-close"></i>
+        <form id="registerForm">
+            <h3>用户注册</h3>
+            <div id="registerError" style="display: none; color: red; margin-top: 10px;"></div>
+            <div class="form-group">
+                <label for="user-type">用户类型</label>
+                <div class="user-type-selector">
+                    <div class="user-type-option active" data-type="elderly">老年人</div>
+                    <div class="user-type-option" data-type="family">家属</div>
+                    <div class="user-type-option" data-type="manager">管理员</div>
+                </div>
+            </div>
+
+            <input type="text" class="box" id="registerName" placeholder="请输入真实姓名" required>
+            <input type="email" class="box" id="registerEmail" placeholder="请输入邮箱" autocomplete="email" required>
+            <input type="tel" class="box" id="registerPhone" placeholder="请输入手机号" required>
+            <input type="password" class="box" id="registerPassword" placeholder="请输入密码" autocomplete="new-password"
+                required>
+            <input type="password" class="box" id="registerConfirmPassword" placeholder="请确认密码"
+                autocomplete="new-password" required>
+            <input type="text" class="box" id="registerAddress" placeholder="请输入详细住址">
+
+            <input type="submit" value="注册" class="btn">
+
+            <p>已有账号？<a href="#" id="show-login">立即登录</a></p>
+        </form>
+    </div>
+
+    <!-- 注册成功提示 -->
+    <div class="register-success" id="registerSuccess">
+        <i class="fas fa-check-circle"></i>
+        <h3>注册成功！</h3>
+        <p>正在为您跳转到登录页面...</p>
+        <div class="countdown" id="registerCountdown">3</div>
+    </div>
+
+    <!-- 登录成功提示 -->
+    <div class="login-success" id="loginSuccess">
+        <i class="fas fa-check-circle"></i>
+        <h3>登录成功！</h3>
+        <p>正在为您刷新页面...</p>
+        <div class="countdown" id="loginCountdown">3</div>
+    </div>
+
+    <!-- home section starts  -->
+    <section class="home" id="home">
+        <div class="juice">
+            <img src="static/img/2.jpg" alt="养老服务宣传图">
+        </div>
+        <div class="leaves">
+            <ul id="scene">
+                <li class="layer" data-depth="-.1">
+                    <img src="static/img/leaf01.png" alt="装饰叶片">
+                </li>
+                <li class="layer" data-depth="-.3">
+                    <img src="static/img/leaf02.png" alt="装饰叶片">
+                </li>
+                <li class="layer" data-depth="-1.5">
+                    <img src="static/img/leaf03.png" alt="装饰叶片">
+                </li>
+                <li class="layer" data-depth=".1">
+                    <img src="static/img/leaf04.png" alt="装饰叶片">
+                </li>
+                <li class="layer" data-depth=".3">
+                    <img src="static/img/leaf05.png" alt="装饰叶片">
+                </li>
+            </ul>
+        </div>
+        <div class="home-content">
+            <h2>欢迎来到银龄智护</h2>
+            <p id="welcomeMessage">专业的养老服务平台，为老年人提供便捷、贴心的服务</p>
+            <a href="#services" class="btn">了解服务</a>
+        </div>
+    </section>
+
+    <!-- 社区反馈 section -->
+    <section id="feedback" class="community-feedback">
+        <h2 class="section-title">社区反馈</h2>
+        <div class="feedback-container">
+            <div class="feedback-card">
+                <a href="community-center.html">
+                    <img src="static/img/4.jpg" alt="社区服务图片" class="feedback-img">
+                    <div class="feedback-content">
+                        <h3><i class="fas fa-map-marker-alt"></i> 社区服务中心</h3>
+                        <p>提供日常照料、健康咨询等服务</p>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span>满意度 92%</span>
+                        </div>
+                        <button class="btn feedback-btn">查看详情</button>
+                    </div>
+                </a>
+            </div>
+
+            <div class="feedback-card">
+                <a href="activity-center.html">
+                    <img src="static/img/6.jpg" alt="社区活动图片" class="feedback-img">
+                    <div class="feedback-content">
+                        <h3><i class="fas fa-map-marker-alt"></i> 老年活动中心</h3>
+                        <p>组织各类文娱活动，丰富精神生活</p>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span>满意度 95%</span>
+                        </div>
+                        <button class="btn feedback-btn">查看详情</button>
+                    </div>
+                </a>
+            </div>
+    </section>
+
+    <!-- services section starts  -->
+    <section class="services" id="services">
+        <h1 class="heading">
+            <span>服</span>
+            <span>务</span>
+            <span class="space"></span>
+            <span>内</span>
+            <span>容</span>
+        </h1>
+
+        <div class="box-container">
+            <div class="box">
+                <i class="fas fa-hospital"></i>
+                <h3>健康医疗</h3>
+                <p>提供定期体检、慢病管理、紧急救助等医疗服务，保障老年人身体健康</p>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-utensils"></i>
+                <h3>餐饮服务</h3>
+                <p>提供营养均衡的膳食，根据老年人健康状况定制专属餐饮方案</p>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-home"></i>
+                <h3>居家照料</h3>
+                <p>提供上门护理、家政服务、生活照料等，让老年人居家生活更舒适</p>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-gamepad"></i>
+                <h3>文化娱乐</h3>
+                <p>组织书法绘画、棋牌游戏、歌咏比赛等活动，丰富老年人精神生活</p>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-bus"></i>
+                <h3>出行协助</h3>
+                <p>提供陪同就医、购物接送、旅游出行等服务，解决老年人出行难题</p>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-phone-alt"></i>
+                <h3>紧急呼叫</h3>
+                <p>24小时紧急呼叫服务，一键响应，及时提供帮助</p>
+            </div>
+        </div>
+    </section>
+    <!-- services section ends -->
+
+    <!-- gallery section starts  -->
+    <section class="gallery" id="reference">
+        <h1 class="heading">
+            <span>在</span>
+            <span>线</span>
+            <span class="space"></span>
+            <span>办</span>
+            <span>理</span>
+        </h1>
+
+        <div class="box-container">
+            <div class="box">
+                <img src="static/img/8.jpg" alt="老年证办理">
+                <div class="content">
+                    <h3>老年证办理</h3>
+                    <p>在线申请和查询老年证办理进度</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <img src="static/img/7.jpg" alt="医保服务">
+                <div class="content">
+                    <h3>医保服务</h3>
+                    <p>医保查询、报销申请等服务</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <img src="static/img/15.jpg" alt="养老补贴">
+                <div class="content">
+                    <h3>养老补贴</h3>
+                    <p>申请和查询各类养老补贴</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <img src="static/img/12.jpg" alt="预约挂号">
+                <div class="content">
+                    <h3>预约挂号</h3>
+                    <p>在线预约各大医院专家号</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <img src="static/img/14.jpg" alt="家政预约">
+                <div class="content">
+                    <h3>家政预约</h3>
+                    <p>预约专业家政服务人员</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+
+            <div class="box">
+                <img src="static/img/11.jpg" alt="法律援助">
+                <div class="content">
+                    <h3>法律援助</h3>
+                    <p>获取老年人相关的法律咨询和援助</p>
+                    <a href="" class="btn login-required">立即办理</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- gallery section ends -->
+
+    <!-- review section (养老地图) starts （原有结构保留，新增地图内容） -->
+    <section class="review" id="review">
+        <h1 class="heading">
+            <span>养</span>
+            <span>老</span>
+            <span class="space"></span>
+            <span>地</span>
+            <span>图</span>
+        </h1>
+
+        <!-- 新增：民政部养老地图集成（核心功能） -->
+        <div class="map-wrapper">
+            <iframe src="https://yanglao.mca.gov.cn/#/elderlyCareMap" class="elderly-map-iframe" title="全国养老服务机构地图">
+            </iframe>
+
+            <div class="map-guide">
+                <i class="fas fa-info-circle"></i> 地图使用指南：点击地图标记可查看养老机构详情；左侧可按省份/城市筛选；鼠标滚轮可缩放地图；拖动可查看不同区域
+            </div>
+        </div>
+    </section>
+    <!-- review section ends -->
+
+    <!-- contact section starts  -->
+    <section class="contact" id="contact">
+        <h1 class="heading">
+            <span>联</span>
+            <span>系</span>
+            <span class="space"></span>
+            <span>我</span>
+            <span>们</span>
+        </h1>
+
+        <div class="row">
+            <div class="image">
+                <img src="static/img/9.jpg" alt="联系我们">
+            </div>
+
+            <form id="feedbackForm">
+                <div class="inputBox">
+                    <input type="text" name="name" placeholder="请输入您的姓名" required>
+                    <input type="email" name="email" placeholder="请输入您的邮箱" required>
+                </div>
+
+                <div class="inputBox">
+                    <input type="tel" name="phone" placeholder="请输入您的电话" required>
+                    <input type="text" name="question" placeholder="问题类型" required>
+                </div>
+
+                <textarea name="content" cols="30" rows="10" placeholder="请输入您的意见或建议" required></textarea>
+
+                <!-- 消息提示区域 -->
+                <div id="errorMessage" class="message error" style="display: none;">请填写完整信息</div>
+                <div id="successMessage" class="message success" style="display: none;">提交成功，感谢您的反馈</div>
+                <div id="networkErrorMessage" class="message error" style="display: none;">网络错误，请检查连接</div>
+                <div id="serverErrorMessage" class="message error" style="display: none;">服务器错误，请稍后重试</div>
+
+                <input type="submit" value="提交反馈" class="btn">
+            </form>
+        </div>
+    </section>
+    <!-- contact section ends -->
+
+    <!-- footer section  -->
+    <footer class="footer">
+        <div class="box-container">
+            <div class="box">
+                <h3>联系我们</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 北京市海淀区中关村南大街5号</p>
+                <p><i class="fas fa-phone"></i> 010-12345678</p>
+                <p><i class="fas fa-envelope"></i> contact@yinlingzhihu.com</p>
+                <p>工作时间：周一至周五 9:00-17:00</p>
+            </div>
+
+            <div class="box">
+                <h3>快速链接</h3>
+                <a href="index.html#home">首页</a>
+                <a href="index.html#feedback">社区反馈</a>
+                <a href="services.html">服务查询</a>
+                <a href="index.html#reference">在线办理</a>
+                <a href="index.html#review">养老地图</a>
+                <a href="contact.html">联系我们</a>
+            </div>
+
+            <div class="box">
+                <h3>关注我们</h3>
+                <a href="#"><i class="fab fa-weixin"></i> 微信公众号</a>
+                <a href="#"><i class="fab fa-douyin"></i> 抖音</a>
+                <a href="#"><i class="fab fa-xiaohongshu"></i> 小红书</a>
+            </div>
+        </div>
+
+        <h1 class="credit"> 版权所有 <span>银龄智护</span> | 服务老年人，传递温暖 </h1>
+    </footer>
+
+    <!-- 登录提示弹窗 -->
+    <div class="login-prompt" id="loginPrompt"
+        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 1000;">
+        <p><i class="fas fa-info-circle" style="color: #4CAF50;"></i> 请先登录以使用此功能</p>
+        <button class="btn"
+            onclick="showLoginForm(); document.getElementById('loginPrompt').style.display = 'none';">去登录</button>
+    </div>
+
+    <!-- 原有脚本引入保留 -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="./static/js/min.js"></script>
+    <script src="./static/js/local-user-manager.js"></script>
+    <script src="./static/js/main.js"></script>
+    <script>
+        //"联系我们"表单提交
+        const feedbackForm = document.getElementById('feedbackForm');
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                // 1. 获取并验证表单数据
+                const formData = {
+                    name: document.querySelector('input[name="name"]').value.trim(),
+                    email: document.querySelector('input[name="email"]').value.trim(),
+                    phone: document.querySelector('input[name="phone"]').value.trim(),
+                    question: document.querySelector('input[name="question"]').value.trim(),
+                    content: document.querySelector('textarea[name="content"]').value.trim()
+                };
+                // 前端基础验证
+                if (!formData.name || !formData.email || !formData.phone || !formData.question || !formData.content) {
+                    showMessage('errorMessage', '请填写完整信息');
+                    return;
+                }
+
+                try {
+                    // 2. 使用本地存储模拟提交
+                    // 创建唯一的联系记录ID
+                    const contactId = Date.now().toString();
+
+                    // 获取现有的联系记录或创建新数组
+                    const existingContacts = JSON.parse(localStorage.getItem('silverAgeContacts') || '[]');
+
+                    // 添加新的联系记录
+                    const newContact = {
+                        id: contactId,
+                        ...formData,
+                        createdAt: new Date().toISOString(),
+                        status: 'pending' // pending, processed, resolved
+                    };
+
+                    existingContacts.push(newContact);
+                    localStorage.setItem('silverAgeContacts', JSON.stringify(existingContacts));
+
+                    // 成功处理
+                    const successText = '提交成功，我们会尽快与您联系！';
+                    showMessage('successMessage', successText);
+                    this.reset(); // 重置表单
+
+                } catch (error) {
+                    // 捕获其他错误
+                    console.error('提交失败:', error);
+                    showMessage('serverErrorMessage', '提交过程中发生错误，请重试');
+                }
+            });
+
+        }
+        // 统一消息处理（含语音提示）
+        function showMessage(elementId, text) {
+            // 隐藏所有消息
+            document.querySelectorAll('.message').forEach(el => el.style.display = 'none');
+            // 显示当前消息
+            const messageEl = document.getElementById(elementId);
+            messageEl.style.display = 'block';
+            messageEl.textContent = text;
+            // 语音提示
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            speechSynthesis.speak(utterance);
+            // 3秒后自动隐藏
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
+        // 统一的登录状态检查和页面初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('页面加载，检查登录状态...');
+
+            // 自动登录检查
+            const token = localStorage.getItem('elderly_vue_token');
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+
+            console.log('Token:', token);
+            console.log('UserInfo:', userInfo);
+
+            if (token && userInfo && userInfo.realName) {
+                // 用户已登录
+                document.body.classList.add('logged-in');
+
+                // 更新用户信息显示
+                if (document.getElementById('userNameDisplay')) {
+                    document.getElementById('userNameDisplay').textContent = userInfo.realName || '用户';
+                }
+
+                // 更新欢迎信息
+                if (document.getElementById('welcomeMessage')) {
+                    document.getElementById('welcomeMessage').textContent =
+                        `欢迎回来，${userInfo.realName}！为您提供专属养老服务`;
+                }
+
+                // 更新用户信息卡片
+                if (document.getElementById('userWelcomeName')) {
+                    document.getElementById('userWelcomeName').textContent = userInfo.realName || '用户名称';
+                }
+
+                // 设置用户头像首字母
+                if (userInfo.realName && document.getElementById('userAvatar')) {
+                    const avatarLetter = userInfo.realName.charAt(0);
+                    document.getElementById('userAvatar').innerHTML = `<span>${avatarLetter}</span>`;
+                }
+
+                console.log('用户已登录，更新页面状态');
+            } else {
+                // 用户未登录
+                document.body.classList.remove('logged-in');
+                console.log('用户未登录');
+                
+                // 清除可能无效的数据
+                if (!token || !userInfo.realName) {
+                    localStorage.removeItem('userInfo');
+                    localStorage.removeItem('elderly_vue_token');
+                }
+            }
+
+            // 初始化其他功能
+            if (typeof initializeForgotPassword === 'function') {
+                initializeForgotPassword();
+            }
+        });
+
+        // 统一的登录检查函数
+        function checkAuthStatus() {
+            const token = localStorage.getItem('elderly_vue_token');
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            return !!(token && userInfo && userInfo.realName);
+        }
+
+        // 统一的登录状态获取函数
+        function getCurrentUser() {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            return userInfo || null;
+        }
+
+        // 登录提示函数
+        function showLoginPrompt() {
+            const loginPrompt = document.getElementById('loginPrompt');
+            if (loginPrompt) {
+                loginPrompt.style.display = 'block';
+                setTimeout(() => {
+                    loginPrompt.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 显示登录表单
+        function showLoginForm() {
+            const loginFormContainer = document.querySelector('.login-form-container');
+            if (loginFormContainer) {
+                loginFormContainer.classList.add('active');
+            }
+        }
+    </script>
+</body>
+
+</html>
