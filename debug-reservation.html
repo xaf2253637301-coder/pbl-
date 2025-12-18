@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约功能调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>预约功能调试页面</h1>
+
+    <div class="container">
+        <h2>测试预约管理器</h2>
+        <button class="btn" onclick="testReservationManager()">测试预约管理器</button>
+        <button class="btn" onclick="testLocalStorage()">测试本地存储</button>
+        <button class="btn" onclick="clearStorage()">清空存储</button>
+        <div id="debugInfo" class="debug-info"></div>
+    </div>
+
+    <div class="container">
+        <h2>预约表单</h2>
+        <form id="testForm">
+            <div class="form-group">
+                <label for="name">姓名 *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">手机号 *</label>
+                <input type="tel" id="phone" name="phone" required placeholder="请输入11位手机号">
+            </div>
+
+            <div class="form-group">
+                <label for="date">预约日期 *</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="serviceType">服务类型 *</label>
+                <select id="serviceType" name="serviceType" required>
+                    <option value="">请选择服务类型</option>
+                    <option value="daily">日常照料服务</option>
+                    <option value="health">健康监测服务</option>
+                    <option value="medical">医疗协助服务</option>
+                    <option value="other">其他服务</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">需求描述 *</label>
+                <textarea id="description" name="需求描述" required placeholder="请描述您的具体需求..."></textarea>
+            </div>
+
+            <button type="submit" class="btn">提交预约</button>
+        </form>
+
+        <div id="formError" class="message error" style="display: none;"></div>
+        <div id="formSuccess" class="message success" style="display: none;"></div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="./static/js/local-reservation-manager.js"></script>
+    <script>
+        let debugOutput = '';
+
+        function log(message) {
+            debugOutput += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            document.getElementById('debugInfo').textContent = debugOutput;
+            console.log(message);
+        }
+
+        function testReservationManager() {
+            log('=== 测试预约管理器 ===');
+            log('reservationManager 类型: ' + typeof reservationManager);
+
+            if (typeof reservationManager !== 'undefined') {
+                log('reservationManager 存在');
+                log('getReservations 方法: ' + typeof reservationManager.getReservations);
+                log('createReservation 方法: ' + typeof reservationManager.createReservation);
+                log('getReservationStats 方法: ' + typeof reservationManager.getReservationStats);
+
+                // 测试统计
+                const stats = reservationManager.getReservationStats();
+                log('当前统计: ' + JSON.stringify(stats, null, 2));
+            } else {
+                log('ERROR: reservationManager 未定义!');
+            }
+        }
+
+        function testLocalStorage() {
+            log('=== 测试本地存储 ===');
+            log('localStorage 可用: ' + typeof localStorage);
+
+            try {
+                const testData = { test: 'value', timestamp: Date.now() };
+                localStorage.setItem('testKey', JSON.stringify(testData));
+                const retrieved = JSON.parse(localStorage.getItem('testKey'));
+                log('localStorage 测试成功: ' + JSON.stringify(retrieved));
+                localStorage.removeItem('testKey');
+            } catch (error) {
+                log('localStorage 测试失败: ' + error.message);
+            }
+        }
+
+        function clearStorage() {
+            log('=== 清空存储 ===');
+            try {
+                localStorage.clear();
+                log('存储已清空');
+            } catch (error) {
+                log('清空存储失败: ' + error.message);
+            }
+        }
+
+        // 表单提交处理
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            log('=== 表单提交 ===');
+
+            const formData = {
+                name: document.querySelector('input[name="name"]').value.trim(),
+                phone: document.querySelector('input[name="phone"]').value.trim(),
+                reservationDate: document.querySelector('input[name="date"]').value,
+                serviceType: document.querySelector('select[name="serviceType"]').value,
+                demandDescription: document.querySelector('textarea[name="需求描述"]').value.trim()
+            };
+
+            log('表单数据: ' + JSON.stringify(formData, null, 2));
+
+            try {
+                const result = reservationManager.createReservation(formData);
+                log('预约结果: ' + JSON.stringify(result, null, 2));
+
+                if (result.success) {
+                    document.getElementById('formSuccess').style.display = 'block';
+                    document.getElementById('formSuccess').textContent = result.message;
+                    document.getElementById('formError').style.display = 'none';
+                    this.reset();
+                } else {
+                    document.getElementById('formError').style.display = 'block';
+                    document.getElementById('formError').textContent = result.message;
+                    document.getElementById('formSuccess').style.display = 'none';
+                }
+            } catch (error) {
+                log('提交异常: ' + error.message);
+                log('错误堆栈: ' + error.stack);
+                document.getElementById('formError').style.display = 'block';
+                document.getElementById('formError').textContent = '提交过程中发生错误: ' + error.message;
+                document.getElementById('formSuccess').style.display = 'none';
+            }
+        });
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('=== 页面加载完成 ===');
+            testReservationManager();
+
+            // 设置日期最小值为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').min = today;
+        });
+    </script>
+</body>
+</html>
