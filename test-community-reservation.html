@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区预约功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .reservation-list {
+            margin-top: 20px;
+        }
+
+        .reservation-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .reservation-item strong {
+            color: #333;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .status.pending { background: #ffc107; }
+        .status.confirmed { background: #28a745; }
+        .status.completed { background: #007bff; }
+        .status.cancelled { background: #dc3545; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>社区预约功能测试</h1>
+
+    <!-- 统计信息 -->
+    <div class="container">
+        <h2>预约统计</h2>
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalReservations">0</div>
+                <div class="stat-label">总预约数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingReservations">0</div>
+                <div class="stat-label">待确认</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="confirmedReservations">0</div>
+                <div class="stat-label">已确认</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedReservations">0</div>
+                <div class="stat-label">已完成</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- 预约表单 -->
+        <div class="container">
+            <h2>创建预约</h2>
+            <form id="reservationForm">
+                <div class="form-group">
+                    <label for="name">姓名 *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">手机号 *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="请输入11位手机号">
+                </div>
+
+                <div class="form-group">
+                    <label for="date">预约日期 *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="serviceType">服务类型 *</label>
+                    <select id="serviceType" name="serviceType" required>
+                        <option value="">请选择服务类型</option>
+                        <option value="健康检查">健康检查</option>
+                        <option value="理发服务">理发服务</option>
+                        <option value="康复理疗">康复理疗</option>
+                        <option value="心理咨询">心理咨询</option>
+                        <option value="法律咨询">法律咨询</option>
+                        <option value="其他服务">其他服务</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">需求描述 *</label>
+                    <textarea id="description" name="需求描述" required placeholder="请详细描述您的需求..."></textarea>
+                </div>
+
+                <button type="submit" class="btn">提交预约</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('reservationForm').reset()">清空表单</button>
+            </form>
+
+            <div id="messageContainer"></div>
+        </div>
+
+        <!-- 预约列表 -->
+        <div class="container">
+            <h2>预约列表</h2>
+            <button class="btn" onclick="loadReservations()">刷新列表</button>
+            <button class="btn btn-danger" onclick="clearAllReservations()">清空所有预约</button>
+            <button class="btn btn-success" onclick="exportReservations()">导出数据</button>
+
+            <div class="reservation-list" id="reservationList"></div>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="./static/js/local-reservation-manager.js"></script>
+    <script>
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadReservations();
+
+            // 设置日期输入的最小值为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').min = today;
+        });
+
+        // 预约表单提交
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                reservationDate: document.getElementById('date').value,
+                serviceType: document.getElementById('serviceType').value,
+                demandDescription: document.getElementById('description').value.trim()
+            };
+
+            // 调用本地预约管理器
+            const result = reservationManager.createReservation(formData);
+
+            if (result.success) {
+                showMessage('预约创建成功！', 'success');
+                document.getElementById('reservationForm').reset();
+                loadStats();
+                loadReservations();
+            } else {
+                showMessage('预约失败：' + result.message, 'error');
+            }
+        });
+
+        // 加载预约统计
+        function loadStats() {
+            const stats = reservationManager.getReservationStats();
+            document.getElementById('totalReservations').textContent = stats.total;
+            document.getElementById('pendingReservations').textContent = stats.pending;
+            document.getElementById('confirmedReservations').textContent = stats.confirmed;
+            document.getElementById('completedReservations').textContent = stats.completed;
+        }
+
+        // 加载预约列表
+        function loadReservations() {
+            const reservations = reservationManager.getReservations();
+            const reservationListDiv = document.getElementById('reservationList');
+
+            if (reservations.length === 0) {
+                reservationListDiv.innerHTML = '<div class="message info">暂无预约数据</div>';
+                return;
+            }
+
+            // 按创建时间倒序排列
+            const sortedReservations = reservations.sort((a, b) =>
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+
+            const reservationItems = sortedReservations.map(reservation => `
+                <div class="reservation-item">
+                    <strong>${reservation.name}</strong>
+                    <span class="status ${reservation.status}">${getStatusText(reservation.status)}</span>
+                    <br>
+                    <small>
+                        手机：${reservation.phone} |
+                        日期：${reservation.reservationDate} |
+                        服务：${reservation.serviceType} |
+                        创建时间：${new Date(reservation.createdAt).toLocaleString()}
+                    </small>
+                    <br>
+                    <small><strong>需求：</strong> ${reservation.demandDescription}</small>
+                    <div style="margin-top: 10px;">
+                        <button class="btn" style="font-size: 12px; padding: 5px 10px;"
+                                onclick="updateStatus('${reservation.id}', 'confirmed')"
+                                ${reservation.status === 'confirmed' || reservation.status === 'completed' ? 'disabled' : ''}>
+                            确认
+                        </button>
+                        <button class="btn btn-success" style="font-size: 12px; padding: 5px 10px;"
+                                onclick="updateStatus('${reservation.id}', 'completed')"
+                                ${reservation.status === 'completed' || reservation.status === 'cancelled' ? 'disabled' : ''}>
+                            完成
+                        </button>
+                        <button class="btn btn-danger" style="font-size: 12px; padding: 5px 10px;"
+                                onclick="deleteReservation('${reservation.id}')">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            reservationListDiv.innerHTML = reservationItems;
+        }
+
+        // 更新预约状态
+        function updateStatus(reservationId, status) {
+            const result = reservationManager.updateReservationStatus(reservationId, status);
+
+            if (result.success) {
+                showMessage('预约状态更新成功', 'success');
+                loadStats();
+                loadReservations();
+            } else {
+                showMessage('状态更新失败：' + result.message, 'error');
+            }
+        }
+
+        // 删除预约
+        function deleteReservation(reservationId) {
+            if (confirm('确定要删除这个预约吗？')) {
+                const result = reservationManager.deleteReservation(reservationId);
+
+                if (result.success) {
+                    showMessage('预约删除成功', 'success');
+                    loadStats();
+                    loadReservations();
+                } else {
+                    showMessage('删除失败：' + result.message, 'error');
+                }
+            }
+        }
+
+        // 清空所有预约
+        function clearAllReservations() {
+            if (confirm('确定要清空所有预约数据吗？此操作不可恢复！')) {
+                const result = reservationManager.clearAllReservations();
+                showMessage(result.message, 'info');
+                loadStats();
+                loadReservations();
+            }
+        }
+
+        // 导出预约数据
+        function exportReservations() {
+            const result = reservationManager.exportReservations();
+            showMessage(result.message, result.success ? 'success' : 'error');
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('messageContainer');
+            messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
+
+            // 3秒后自动清除消息
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return '待确认';
+                case 'confirmed': return '已确认';
+                case 'completed': return '已完成';
+                case 'cancelled': return '已取消';
+                default: return '未知';
+            }
+        }
+    </script>
+</body>
+</html>
