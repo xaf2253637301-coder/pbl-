@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="user-scalable=yes">
+    <title>关于我们 - 银龄智护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+	<link rel="stylesheet" href="static/css/loginbtn.css">
+</head>
+<body>
+    <!-- 辅助工具栏 -->
+    <div class="accessibility-toolbar">
+        <button id="fontSizeIncrease" class="access-btn"><i class="fas fa-text-height"></i> 增大字体</button>
+        <button id="fontSizeDecrease" class="access-btn"><i class="fas fa-text-height fa-flip-vertical"></i> 减小字体</button>
+        <button id="highContrast" class="access-btn"><i class="fas fa-adjust"></i> 高对比度</button>
+        <button id="readAloud" class="access-btn"><i class="fas fa-volume-up"></i> 语音朗读</button>
+    </div>
+
+    <!-- header section starts -->
+    <header>
+        <div id="menu-bar" class="fas fa-bars"></div>
+        <a href="index.html" class="logo"><span>银</span>龄智护</a>
+        <nav class="navbar">
+            <a href="index.html#home">首页</a>
+            <a href="index.html#feedback">社区反馈</a>
+            <a href="services.html">服务查询</a>
+            <a href="index.html#reference">在线办理</a>
+            <a href="index.html#review">养老地图</a>
+            <a href="contact.html">联系我们</a>
+        </nav>
+        <div class="icons">
+            <i class="fas fa-search" id="search-btn"></i>
+            <i class="fas fa-user" id="login-btn"></i>
+        </div>
+        <form action="" class="search-bar-container">
+            <input type="search" id="search-bar" placeholder="请输入您想搜索的内容...">
+            <label for="search-bar" class="fas fa-search"></label>
+        </form>
+    </header>
+    <!-- header section ends -->
+
+      <!-- login form container  -->
+	<div class="login-form-container">
+		<i class="fas fa-times" id="form-close"></i>
+		<form id="loginForm">
+			<h3>用户登录</h3>
+			<div id="loginError" style="display: true; color: red; margin-top: 10px; ">hell
+			</div>
+			<input type="email" class="box" id="loginEmail" placeholder="请输入邮箱" autocomplete="email" required>
+			<input type="password" class="box" id="loginPassword" placeholder="请输入密码" autocomplete="current-password"
+				required>
+			<input type="submit" value="登录" class="btn">
+			<input type="checkbox" id="remember">
+			<label for="remember">记住密码</label>
+			<p>忘记密码？<a href="#">点击找回</a></p>
+			<p>还没有账号？<a href="#" id="show-register">立即注册</a></p>
+		</form>
+	</div>
+
+	<!-- register form container  -->
+	<div class="register-form-container">
+		<i class="fas fa-times" id="register-form-close"></i>
+		<form id="registerForm">
+			<h3>用户注册</h3>
+			<div id="registerError" style="display: none; color: red; margin-top: 10px;"></div>
+			<div class="form-group">
+				<label for="user-type">用户类型</label>
+				<div class="user-type-selector">
+					<div class="user-type-option active" data-type="elderly">老年人</div>
+					<div class="user-type-option" data-type="family">家属</div>
+					<div class="user-type-option" data-type="manager">管理员</div>
+				</div>
+			</div>
+
+			<input type="text" class="box" id="registerName" placeholder="请输入真实姓名" required>
+			<input type="email" class="box" id="registerEmail" placeholder="请输入邮箱" autocomplete="email" required>
+			<input type="tel" class="box" id="registerPhone" placeholder="请输入手机号" required>
+			<input type="password" class="box" id="registerPassword" placeholder="请输入密码" autocomplete="new-password"
+				required>
+			<input type="password" class="box" id="registerConfirmPassword" placeholder="请确认密码"
+				autocomplete="new-password" required>
+			<input type="text" class="box" id="registerAddress" placeholder="请输入详细住址">
+
+			<input type="submit" value="注册" class="btn">
+
+			<p>已有账号？<a href="#" id="show-login">立即登录</a></p>
+		</form>
+	</div>
+
+	<!-- 注册成功提示 -->
+	<div class="register-success" id="registerSuccess">
+		<i class="fas fa-check-circle"></i>
+		<h3>注册成功！</h3>
+		<p>正在为您跳转到登录页面...</p>
+		<div class="countdown" id="registerCountdown">3</div>
+	</div>
+
+	<!-- 登录成功提示 -->
+	<div class="login-success" id="loginSuccess">
+		<i class="fas fa-check-circle"></i>
+		<h3>登录成功！</h3>
+		<p>正在为您跳转到用户中心...</p>
+		<div class="countdown" id="loginCountdown">3</div>
+	</div>
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- about page section starts -->
+        <section class="about-page">
+            <h1 class="heading">
+                <span>关</span>
+                <span>于</span>
+                <span class="space"></span>
+                <span>我</span>
+                <span>们</span>
+            </h1>
+
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>我们的使命</h3>
+                    <p>银龄智护成立于2018年，是一家专注于为老年人提供智能护理服务的专业机构。我们致力于通过科技手段提升老年人的生活质量，让每一位老人都能享受安全、舒适、有尊严的晚年生活。</p>
+                    
+                    <h3>我们的愿景</h3>
+                    <p>成为全国领先的智慧养老服务平台，通过技术创新和服务优化，构建覆盖全国的养老服务网络，让优质养老服务触手可及。</p>
+                    
+                    <h3>我们的团队</h3>
+                    <p>我们拥有一支由养老护理专家、医疗顾问、技术研发人员组成的专业团队，平均从业经验超过8年，具备丰富的养老服务经验和专业知识。团队成员均持有相关专业资质证书，定期接受专业培训。</p>
+                    
+                    <h3>服务理念</h3>
+                    <p>以老人为中心，以科技为支撑，以专业为保障，提供全方位、个性化的养老服务解决方案，让老人舒心，让家属放心。</p>
+                    
+                    <h3>我们的成就</h3>
+                    <p>截至目前，我们已经服务超过10万名老年人，覆盖全国50多个城市，获得用户满意度98%的好评。我们与多家医疗机构、社区服务中心建立了长期合作关系。</p>
+                </div>
+                <div class="about-image">
+                    <img src="static/img/2.jpg" alt="银龄智护团队" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjVmN2ZhIi8+CiAgPGNpcmNsZSBjeD0iMjUwIiBjeT0iMTUwIiByPSI4MCIgZmlsbD0iIzE2NWRmZiIvPgogIDx0ZXh0IHg9IjI1MCIgeT0iMjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMzMzIj7lm73pmYXkv6Hmga88L3RleHQ+Cjwvc3ZnPg=='">
+                </div>
+            </div>
+        </section>
+        <!-- about page section ends -->
+    </div>
+
+    <!-- footer section -->
+    <footer class="footer">
+        <div class="box-container">
+            <div class="box">
+                <h3>联系我们</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 北京市海淀区中关村南大街5号</p>
+                <p><i class="fas fa-phone"></i> 010-12345678</p>
+                <p><i class="fas fa-envelope"></i> contact@yinlingzhihu.com</p>
+                <p>工作时间：周一至周五 9:00-17:00</p>
+            </div>
+
+            <div class="box">
+                <h3>快速链接</h3>
+                <a href="index.html#home">首页</a>
+                <a href="index.html#feedback">社区反馈</a>
+                <a href="services.html">服务查询</a>
+                <a href="index.html#reference">在线办理</a>
+                <a href="index.html#review">养老地图</a>
+                <a href="contact.html">联系我们</a>
+            </div>
+
+            <div class="box">
+                <h3>关注我们</h3>
+                <a href="#"><i class="fab fa-weixin"></i> 微信公众号</a>
+                <a href="#"><i class="fab fa-douyin"></i> 抖音</a>
+                <a href="#"><i class="fab fa-xiaohongshu"></i> 小红书</a>
+            </div>
+        </div>
+
+        <h1 class="credit"> 版权所有 <span>银龄智护</span> | 服务老年人，传递温暖 </h1>
+    </footer>
+
+    <!-- 脚本引入 -->
+    <script src="./static/js/auth.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="./static/js/min.js"></script>
+    <script src="./static/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+</html>
