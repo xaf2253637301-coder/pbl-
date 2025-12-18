@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="user-scalable=yes">
+    <title>用户中心 - 银龄智护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/home.css">
+    <link rel="stylesheet" href="static/css/loginbtn.css">
+    <style>
+        .user-health-status.status-good {
+            color: #28a745;
+        }
+
+        .user-health-status.status-warning {
+            color: #ffc107;
+        }
+
+        .user-health-status.status-poor {
+            color: #dc3545;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .login-prompt {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 忘记密码样式 */
+        .forgot-password-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10000;
+            min-height: 100vh;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .forgot-password-container form {
+            margin: 2rem;
+            padding: 1.5rem 2rem;
+            border-radius: 0.5rem;
+            background: #fff;
+            width: 50rem;
+            position: relative;
+        }
+
+        .forgot-password-container form h3 {
+            font-size: 2rem;
+            color: #444;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .forgot-password-container form .box {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            color: #333;
+            margin: 0.6rem 0;
+            border: 0.1rem solid rgba(0, 0, 0, 0.3);
+            text-transform: none;
+        }
+
+        .forgot-password-container form .box:focus {
+            border-color: var(--orange);
+        }
+
+        .forgot-password-container form #forgot-form-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .forgot-password-container form #forgot-form-close:hover {
+            color: #333;
+        }
+
+        /* 步骤进度条 */
+        .forgot-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .step.active {
+            background: var(--orange);
+        }
+
+        .step.completed {
+            background: #4CAF50;
+        }
+
+        .step-connector {
+            height: 2px;
+            background: #ddd;
+            flex: 1;
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .step-connector-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* 表单步骤 */
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        /* 按钮组 */
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+
+        .form-buttons .btn {
+            flex: 1;
+        }
+
+        /* 验证码组 */
+        .verification-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .verification-group .box {
+            flex: 1;
+        }
+
+        .verification-group .btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .form-group{
+            font-size: large;
+        }
+        /* 错误状态 */
+        .form-group.error .box {
+            border-color: #ff4757;
+        }
+
+        .form-group.success .box {
+            border-color: #2ed573;
+        }
+
+        /* 重置成功提示 */
+        .reset-success {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10001;
+            display: none;
+        }
+
+        .reset-success.active {
+            display: block;
+        }
+
+        .reset-success i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .reset-success h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .reset-success .countdown {
+            font-size: 1.5rem;
+            color: var(--orange);
+            font-weight: bold;
+        }
+    </style>
+    <style>
+        /* 注册表单样式 */
+        .register-form-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10000;
+            min-height: 100vh;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .register-form-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .register-form-container form {
+            margin: 2rem;
+            padding: 1.5rem 2rem;
+            border-radius: 0.5rem;
+            background: #fff;
+            width: 50rem;
+            position: relative;
+        }
+
+        .register-form-container form h3 {
+            font-size: 2rem;
+            color: #444;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .register-form-container form .box {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            color: #333;
+            margin: 0.6rem 0;
+            border: 0.1rem solid rgba(0, 0, 0, 0.3);
+            text-transform: none;
+        }
+
+        .register-form-container form .box:focus {
+            border-color: var(--orange);
+        }
+
+        .register-form-container form #register-form-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .register-form-container form #register-form-close:hover {
+            color: #333;
+        }
+
+        /* 用户类型选择器 */
+        .user-type-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .user-type-option {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-type-option.active {
+            border-color: var(--orange);
+            color: black;
+            background: rgba(255, 165, 0, 0.1);
+        }
+
+        /* 注册成功提示 */
+        .register-success {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10001;
+            display: none;
+        }
+
+        .register-success.active {
+            display: block;
+        }
+
+        .register-success i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .register-success h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .register-success .countdown {
+            font-size: 1.5rem;
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        /* 登录成功提示 */
+        .login-success {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10001;
+            display: none;
+        }
+
+        .login-success.active {
+            display: block;
+        }
+
+        .login-success i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .login-success h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .login-success .countdown {
+            font-size: 1.5rem;
+            color: var(--orange);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="user-center-container">
+        <!-- 适老化工具栏 -->
+        <div class="accessibility-toolbar">
+            <button id="fontSizeIncrease" class="access-btn"><i class="fas fa-text-height"></i> 增大字体</button>
+            <button id="fontSizeDecrease" class="access-btn"><i class="fas fa-text-height fa-flip-vertical"></i>
+                减小字体</button>
+            <button id="highContrast" class="access-btn"><i class="fas fa-adjust"></i> 高对比度</button>
+            <button id="readAloud" class="access-btn"><i class="fas fa-volume-up"></i> 语音朗读</button>
+        </div>
+
+        <!-- 头部导航 -->
+        <header>
+            <div id="menu-bar" class="fas fa-bars"></div>
+
+            <a href="index.html" class="logo"><span>银</span>龄智护</a>
+
+            <nav class="navbar">
+                <a href="index.html">首页</a>
+                <a href="services.html">服务查询</a>
+                <a href="home.html" class="active">用户中心</a>
+                <a href="contact.html">联系我们</a>
+            </nav>
+
+            <div class="icons">
+                <i class="fas fa-search" id="search-btn"></i>
+                <i class="fas fa-user" id="user-btn"></i>
+                <button id="logoutBtn" class="access-btn hidden"><i class="fas fa-sign-out-alt"></i> 退出登录</button>
+            </div>
+
+
+            <form action="" class="search-bar-container">
+                <input type="search" id="search-bar" placeholder="请输入您想搜索的内容...">
+                <label for="search-bar" class="fas fa-search"></label>
+            </form>
+        </header>
+
+        <!-- login form container  -->
+        <div class="login-form-container">
+            <i class="fas fa-times" id="form-close"></i>
+            <form id="loginForm">
+                <div id="loginError" style="display: none; color: red; margin-top: 10px;"></div>
+                <h3>用户登录</h3>
+                <input type="email" class="box" id="loginEmail" placeholder="请输入邮箱" autocomplete="email" required>
+                <input type="password" class="box" id="loginPassword" placeholder="请输入密码"
+                    autocomplete="current-password" required>
+                <input type="submit" value="登录" class="btn">
+                <input type="checkbox" id="remember">
+                <label for="remember">记住密码</label>
+                <p>忘记密码？<a href="#" id="show-forgot-password">点击找回</a></p>
+                <p>还没有账号？<a href="#" id="show-register">立即注册</a></p>
+            </form>
+        </div>
+
+        <!-- 忘记密码表单容器 -->
+        <div class="forgot-password-container">
+            <i class="fas fa-times" id="forgot-form-close"></i>
+            <form id="forgotPasswordForm">
+                <h3>找回密码</h3>
+
+                <div class="form-step active" id="step1">
+                    <div class="form-group">
+                        <label for="forgotEmail">请输入您的邮箱</label>
+                        <input type="email" id="forgotEmail" class="box" placeholder="请输入注册时使用的邮箱" required>
+                    </div>
+                    <button type="button" class="btn next-step" data-next="2">下一步</button>
+                </div>
+
+                <div class="form-step" id="step2">
+                    <div class="form-group">
+                        <label for="verificationCode">请输入验证码</label>
+                        <div class="code-input-group">
+                            <input type="text" id="verificationCode" class="box" placeholder="请输入6位验证码" required>
+                            <button type="button" class="code-btn" id="sendCodeBtn">发送验证码</button>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn prev-step" data-prev="1">上一步</button>
+                        <button type="button" class="btn next-step" data-next="3">下一步</button>
+                    </div>
+                </div>
+
+                <div class="form-step" id="step3">
+                    <div class="form-group">
+                        <label for="newPassword">设置新密码</label>
+                        <input type="password" id="newPassword" class="box" placeholder="请输入新密码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">确认新密码</label>
+                        <input type="password" id="confirmNewPassword" class="box" placeholder="请再次输入新密码" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn prev-step" data-prev="2">上一步</button>
+                        <input type="submit" class="btn" value="确认重置">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- register form container  -->
+        <div class="register-form-container">
+            <i class="fas fa-times" id="register-form-close"></i>
+            <form id="registerForm">
+                <h3>用户注册</h3>
+                <div id="registerError" style="display: none; color: red; margin-top: 10px;"></div>
+                <div class="form-group">
+                    <label for="user-type">用户类型</label>
+                    <div class="user-type-selector">
+                        <div class="user-type-option active" data-type="elderly">老年人</div>
+                        <div class="user-type-option" data-type="family">家属</div>
+                        <div class="user-type-option" data-type="manager">管理员</div>
+                    </div>
+                </div>
+
+                <input type="text" class="box" id="registerName" placeholder="请输入真实姓名" required>
+                <input type="email" class="box" id="registerEmail" placeholder="请输入邮箱" autocomplete="email" required>
+                <input type="tel" class="box" id="registerPhone" placeholder="请输入手机号" required>
+                <input type="password" class="box" id="registerPassword" placeholder="请输入密码" autocomplete="new-password"
+                    required>
+                <input type="password" class="box" id="registerConfirmPassword" placeholder="请确认密码"
+                    autocomplete="new-password" required>
+                <input type="text" class="box" id="registerAddress" placeholder="请输入详细住址">
+
+                <input type="submit" value="注册" class="btn">
+
+                <p>已有账号？<a href="#" id="show-login">立即登录</a></p>
+            </form>
+        </div>
+
+        <!-- 注册成功提示 -->
+        <div class="register-success" id="registerSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h3>注册成功！</h3>
+            <p>正在为您跳转到登录页面...</p>
+            <div class="countdown" id="registerCountdown">3</div>
+        </div>
+
+        <!-- 重置成功提示 -->
+        <div class="reset-success" id="resetSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h3>密码重置成功！</h3>
+            <p>即将跳转到登录页面...</p>
+            <div class="countdown" id="resetCountdown">3</div>
+        </div>
+
+        <!-- 登录成功提示 -->
+        <div class="login-success" id="loginSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h3>登录成功！</h3>
+            <p>正在为您加载用户信息...</p>
+            <div class="countdown" id="countdown">3</div>
+        </div>
+
+        <!-- 用户中心主要内容 -->
+        <section class="user-main-content">
+            <!-- 未登录提示 -->
+            <div id="notLoggedIn" class="login-prompt hidden">
+                <h2>请先登录</h2>
+                <p>登录后即可查看您的个人信息和服务记录</p>
+                <button id="goToLogin" class="btn">立即登录</button>
+            </div>
+
+            <!-- 已登录内容 -->
+            <div id="userContent">
+                <div class="user-welcome">
+                    <h2>欢迎回来，***！</h2>
+                    <p>今天是****年**月**日，祝您身体健康，心情愉快！</p>
+                </div>
+
+                <div class="user-info-card">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3>***</h3>
+                        <p><i class="fas fa-birthday-cake"></i> 年龄：**岁</p>
+                        <p><i class="fas fa-phone"></i> 电话：***********</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 地址：********************</p>
+                        <p><i class="fas fa-heartbeat"></i> 健康状态：<span class="user-health-status">**</span></p>
+                    </div>
+                </div>
+
+                <div class="user-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">**</div>
+                        <div class="stat-label">本月服务次数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">**</div>
+                        <div class="stat-label">待处理服务</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">**%</div>
+                        <div class="stat-label">服务满意度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">**</div>
+                        <div class="stat-label">累计服务天数</div>
+                    </div>
+                </div>
+
+                <div class="user-services">
+                    <h3 class="section-title">我的服务记录</h3>
+                    <div class="service-list">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>送餐服务</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-completed">已完成</span>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-user-nurse"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>健康检查</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-completed">已完成</span>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>居家清洁</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-completed">已完成</span>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>代购服务</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-in-progress">进行中</span>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>陪同就医</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-pending">待确认</span>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="fas fa-hands-helping"></i>
+                            </div>
+                            <div class="service-details">
+                                <h4>康复理疗</h4>
+                                <p>****年**月**日 ***********</p>
+                                <span class="service-status status-pending">待确认</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-preferences">
+                    <h3 class="section-title">我的偏好设置</h3>
+                    <div class="preference-list">
+                        <div class="preference-item">
+                            <h4>饮食偏好</h4>
+                            <p>********</p>
+                            <div class="preference-actions">
+                                <button class="edit-btn">修改</button>
+                            </div>
+                        </div>
+                        <div class="preference-item">
+                            <h4>服务时间</h4>
+                            <p>上午*****-*******，下午*****-*******</p>
+                            <div class="preference-actions">
+                                <button class="edit-btn">修改</button>
+                            </div>
+                        </div>
+                        <div class="preference-item">
+                            <h4>健康关注</h4>
+                            <p>************</p>
+                            <div class="preference-actions">
+                                <button class="edit-btn">修改</button>
+                            </div>
+                        </div>
+                        <div class="preference-item">
+                            <h4>兴趣爱好</h4>
+                            <p>************</p>
+                            <div class="preference-actions">
+                                <button class="edit-btn">修改</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="emergency-contact">
+                    <h3 class="section-title">紧急联系人</h3>
+                    <div class="contact-list">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>***********</h4>
+                                <p>***********</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>***********</h4>
+                                <p>***********</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>社区医生</h4>
+                                <p>***********</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-hospital"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>紧急救援</h4>
+                                <p>120</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="emergency-btn">
+                        <i class="fas fa-bell"></i> 紧急求助
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="box-container">
+                <div class="box">
+                    <h3>联系我们</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 北京市海淀区中关村南大街5号</p>
+                    <p><i class="fas fa-phone"></i> 010-12345678</p>
+                    <p><i class="fas fa-envelope"></i> contact@yinlingzhihu.com</p>
+                    <p>工作时间：周一至周五 9:00-17:00</p>
+                </div>
+
+                <div class="box">
+                    <h3>快速链接</h3>
+                    <a href="index.html">首页</a>
+                    <a href="services.html">服务查询</a>
+                    <a href="user-center.html">用户中心</a>
+                    <a href="contact.html">联系我们</a>
+                </div>
+
+                <div class="box">
+                    <h3>关注我们</h3>
+                    <a href="#"><i class="fab fa-weixin"></i> 微信公众号</a>
+                    <a href="#"><i class="fab fa-douyin"></i> 抖音</a>
+                    <a href="#"><i class="fab fa-xiaohongshu"></i> 小红书</a>
+                </div>
+            </div>
+
+            <h1 class="credit"> 版权所有 <span>银龄智护</span> | 服务老年人，传递温暖 </h1>
+        </footer>
+    </div>
+
+    <!-- 脚本引入 -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="./static/js/min.js"></script>
+    <script src="./static/js/local-user-manager.js"></script>
+    <script src="./static/js/home-data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</body>
+
+</html>
